@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 ##
 # Copyright (c) 2017-2018, Magenta ApS
 #
@@ -214,7 +216,8 @@ class MoraHelper:
     def read_all_users(self, limit: int = 1_000, at=None) -> List[dict]:
         """Return a list of all employees in MO.
 
-        :param limit: Size of pagination groups. Set to 0 to skip pagination and fetch all users in one request.
+        :param limit: Size of pagination groups. Set to 0 to skip pagination and fetch
+            all users in one request.
         :return: List af all employees.
         """
         org = self.read_organisation()
@@ -332,7 +335,8 @@ class MoraHelper:
             current_uuid = UUID(first(current)["uuid"])
             if len(current) > 1:
                 print(
-                    f"More than one class matched on title or bvn. Picked {current_uuid} from: {current}"
+                    f"More than one class matched on title or bvn. "
+                    f"Picked {current_uuid} from: {current}"
                 )
             return current_uuid
 

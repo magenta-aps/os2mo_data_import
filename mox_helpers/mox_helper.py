@@ -1,7 +1,10 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import asyncio
 from functools import partial
 from itertools import product
-from typing import Optional, Any
+from typing import Any
+from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from uuid import UUID
@@ -28,7 +31,7 @@ def is_uuid_list(listy: Sequence[str]) -> bool:
 def ensure_session(func):
     async def _decorator(self, *args, **kwargs):
         if self.session:
-            return await func(self, session, *args, **kwargs)
+            return await func(self, self.session, *args, **kwargs)
         else:
             async with aiohttp.ClientSession() as session:
                 return await func(self, session, *args, **kwargs)

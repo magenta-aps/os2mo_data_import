@@ -1,5 +1,4 @@
 from uuid import UUID
-import typing
 
 
 def uuid_to_str(data):

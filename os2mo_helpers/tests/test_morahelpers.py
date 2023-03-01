@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 from unittest import TestCase
 from unittest.mock import patch
 from uuid import uuid4
@@ -41,7 +43,8 @@ class TestMoraHelper(TestCase):
                     expected_attempts,
                 )
 
-    # Inputs are titles and user_keys of current class and input. Lastly a bool indicating if it needs to post to MO or not.
+    # Inputs are titles and user_keys of current class and input.
+    # Lastly a bool indicating if it needs to post to MO or not.
     @parameterized.expand(
         [
             # Same title and bvn

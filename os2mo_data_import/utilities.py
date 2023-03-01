@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 #
 # Copyright (c) Magenta ApS
 #
@@ -5,28 +7,29 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 import logging
-from uuid import uuid4, UUID
-from requests import Session, HTTPError
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
+from uuid import UUID
+from uuid import uuid4
 
-from os2mo_data_import.mora_data_types import (
-    OrganisationUnitType,
-    TerminationType,
-    EngagementTerminationType,
-    EmployeeType
-)
+from requests import HTTPError
+from requests import Session
+from tenacity import RetryError
+from tenacity import Retrying
+from tenacity import stop_after_attempt
+from tenacity import wait_fixed
 
-from os2mo_data_import.mox_data_types import (
-    Organisation,
-    Klassifikation,
-    Facet,
-    Klasse,
-    Itsystem
-)
+from os2mo_data_import.mora_data_types import EmployeeType
+from os2mo_data_import.mora_data_types import EngagementTerminationType
+from os2mo_data_import.mora_data_types import OrganisationUnitType
+from os2mo_data_import.mora_data_types import TerminationType
+from os2mo_data_import.mox_data_types import Facet
+from os2mo_data_import.mox_data_types import Itsystem
+from os2mo_data_import.mox_data_types import Klasse
+from os2mo_data_import.mox_data_types import Klassifikation
+from os2mo_data_import.mox_data_types import Organisation
 from os2mo_helpers.mora_helpers import MoraHelper
-from tenacity import stop_after_attempt, wait_fixed, RetryError, Retrying
 
 logger = logging.getLogger("moImporterUtilities")
 
@@ -40,7 +43,6 @@ class ImportUtility(object):
     """
 
     def __init__(self, mox_base, mora_base, demand_consistent_uuids, dry_run=False):
-
         # Import Params
         self.demand_consistent_uuids = demand_consistent_uuids
 
@@ -97,9 +99,7 @@ class ImportUtility(object):
             organisation_uuid = organisation.uuid
 
         self.organisation_uuid = self.insert_mox_data(
-            resource=resource,
-            data=payload,
-            uuid=organisation_uuid
+            resource=resource, data=payload, uuid=organisation_uuid
         )
 
         # Global validity
@@ -207,11 +207,9 @@ class ImportUtility(object):
         payload = klasse.build()
 
         import_uuid = self.insert_mox_data(
-            resource="klassifikation/klasse",
-            data=payload,
-            uuid=klasse_uuid
+            resource="klassifikation/klasse", data=payload, uuid=klasse_uuid
         )
-        assert(uuid is None or import_uuid == str(klasse_uuid))
+        assert uuid is None or import_uuid == str(klasse_uuid)
         self.inserted_klasse_map[reference] = import_uuid
 
         return self.inserted_klasse_map[reference]
@@ -230,7 +228,7 @@ class ImportUtility(object):
         if not isinstance(itsystem, Itsystem):
             raise TypeError("Not of type Itsystem")
 
-        resource = 'organisation/itsystem'
+        resource = "organisation/itsystem"
 
         itsystem.organisation_uuid = self.organisation_uuid
         itsystem.date_from = self.date_from
@@ -266,7 +264,7 @@ class ImportUtility(object):
         if reference in self.inserted_org_unit_map:
             return False
 
-        resource = 'organisation/organisationenhed'
+        resource = "organisation/organisationenhed"
 
         # payload = self.build_mo_payload(organisation_unit_data)
         parent_ref = organisation_unit.parent_ref
@@ -277,16 +275,14 @@ class ImportUtility(object):
         if not organisation_unit.parent_uuid:
             organisation_unit.parent_uuid = self.organisation_uuid
 
-        type_ref_uuid = self.inserted_klasse_map.get(
-            organisation_unit.type_ref
-        )
+        type_ref_uuid = self.inserted_klasse_map.get(organisation_unit.type_ref)
 
         if hasattr(organisation_unit, "time_planning_ref"):
             organisation_unit.time_planning_ref_uuid = self.inserted_klasse_map.get(
                 organisation_unit.time_planning_ref
             )
 
-        if hasattr(organisation_unit, 'org_unit_level_ref'):
+        if hasattr(organisation_unit, "org_unit_level_ref"):
             organisation_unit.org_unit_level_uuid = self.inserted_klasse_map.get(
                 organisation_unit.org_unit_level_ref
             )
@@ -295,35 +291,32 @@ class ImportUtility(object):
 
         payload = organisation_unit.build()
 
-        if 'uuid' in payload:
-            if payload['uuid'] in self.existing_uuids:
-                logger.info('Re-import org-unit: {}'.format(payload['uuid']))
-                re_import = 'NO'
-                resource = 'details/edit'
+        if "uuid" in payload:
+            if payload["uuid"] in self.existing_uuids:
+                logger.info("Re-import org-unit: {}".format(payload["uuid"]))
+                re_import = "NO"
+                resource = "details/edit"
                 payload_keys = list(payload.keys())
-                payload['data'] = {}
+                payload["data"] = {}
                 for key in payload_keys:
-                    payload['data'][key] = payload[key]
+                    payload["data"][key] = payload[key]
                     del payload[key]
-                payload['type'] = 'org_unit'
+                payload["type"] = "org_unit"
             else:
-                re_import = 'NEW'
-                logger.info('New unit - Forced uuid: {}'.format(payload['uuid']))
-                resource = 'ou/create'
+                re_import = "NEW"
+                logger.info("New unit - Forced uuid: {}".format(payload["uuid"]))
+                resource = "ou/create"
         else:
-            re_import = 'NEW'
-            logger.info('New unit, random uuid')
-            resource = 'ou/create'
+            re_import = "NEW"
+            logger.info("New unit, random uuid")
+            resource = "ou/create"
 
-        logger.debug('Unit payload: {}'.format(payload))
+        logger.debug("Unit payload: {}".format(payload))
 
-        uuid = self.insert_mora_data(
-            resource=resource,
-            data=payload
-        )
+        uuid = self.insert_mora_data(resource=resource, data=payload)
 
-        if 'uuid' in payload:
-            assert (uuid == payload['uuid'])
+        if "uuid" in payload:
+            assert uuid == payload["uuid"]
         if not uuid:
             raise ConnectionError("Something went wrong")
 
@@ -331,7 +324,7 @@ class ImportUtility(object):
         self.inserted_org_unit_map[reference] = uuid
 
         data = {}
-        data['address'] = self.mh._get_detail(uuid, 'address', object_type='ou')
+        data["address"] = self.mh._get_detail(uuid, "address", object_type="ou")
 
         # Build details (if any)
         details_payload = []
@@ -344,34 +337,29 @@ class ImportUtility(object):
             if not date_from:
                 date_from = organisation_unit.date_from
 
-            build_detail = self.build_detail(
-                detail=detail
-            )
+            build_detail = self.build_detail(detail=detail)
 
             if not build_detail:
                 continue
 
             found_hit = self._payload_compare(build_detail, data)
-            logger.debug('Found hit for {}: {}'.format(uuid, found_hit))
-            if not found_hit and re_import == 'NO':
-                re_import = 'YES'
+            logger.debug("Found hit for {}: {}".format(uuid, found_hit))
+            if not found_hit and re_import == "NO":
+                re_import = "YES"
 
             # TODO: SHOLD WE UPDATE FROM TO TODAY IN CASE OF RE-IMPORT?
-            if re_import == 'YES':
-                valid_from = datetime.now().strftime('%Y-%m-%d')  # today
-                build_detail['validity']['from'] = valid_from
+            if re_import == "YES":
+                valid_from = datetime.now().strftime("%Y-%m-%d")  # today
+                build_detail["validity"]["from"] = valid_from
             details_payload.append(build_detail)
 
-        if re_import == 'YES':
-            logger.info('Terminating details for unit {}'.format(uuid))
-            for item in data['address']:
-                self._terminate_details(item['uuid'], 'address')
-        if re_import in ('YES', 'NEW'):
-            logger.info('Re-import unit: {}'.format(re_import))
-            self.insert_mora_data(
-                resource="details/create",
-                data=details_payload
-            )
+        if re_import == "YES":
+            logger.info("Terminating details for unit {}".format(uuid))
+            for item in data["address"]:
+                self._terminate_details(item["uuid"], "address")
+        if re_import in ("YES", "NEW"):
+            logger.info("Re-import unit: {}".format(re_import))
+            self.insert_mora_data(resource="details/create", data=details_payload)
 
         return uuid
 
@@ -391,12 +379,12 @@ class ImportUtility(object):
         employee.org_uuid = self.organisation_uuid
         payload = employee.build()
 
-        if 'uuid' in payload and payload['uuid'] in self.existing_uuids:
-            logger.info('Re-import employee {}'.format(payload['uuid']))
-            re_import = 'NO'
+        if "uuid" in payload and payload["uuid"] in self.existing_uuids:
+            logger.info("Re-import employee {}".format(payload["uuid"]))
+            re_import = "NO"
         else:
-            re_import = 'NEW'
-            logger.info('New employee, uuid {}'.format(payload.get('uuid')))
+            re_import = "NEW"
+            logger.info("New employee, uuid {}".format(payload.get("uuid")))
 
         # We unconditionally create or update the user, this should
         # ensure that we are always updated with correct current information.
@@ -410,20 +398,20 @@ class ImportUtility(object):
         self.inserted_employee_map[reference] = uuid
 
         data = {}
-        data['it'] = self.mh._get_detail(uuid, 'it')
-        data['role'] = self.mh._get_detail(uuid, 'role')
-        data['leave'] = self.mh._get_detail(uuid, 'leave')
-        data['address'] = self.mh._get_detail(uuid, 'address')
-        data['manager'] = self.mh._get_detail(uuid, 'manager')
-        data['engagement'] = self.mh._get_detail(uuid, 'engagement')
-        data['association'] = self.mh._get_detail(uuid, 'association')
+        data["it"] = self.mh._get_detail(uuid, "it")
+        data["role"] = self.mh._get_detail(uuid, "role")
+        data["leave"] = self.mh._get_detail(uuid, "leave")
+        data["address"] = self.mh._get_detail(uuid, "address")
+        data["manager"] = self.mh._get_detail(uuid, "manager")
+        data["engagement"] = self.mh._get_detail(uuid, "engagement")
+        data["association"] = self.mh._get_detail(uuid, "association")
 
         # In case of en explicit termination, we terminate the employee or
         # employment and return imidiately.
         for detail in details:
             if isinstance(detail, TerminationType):
                 logger.info(
-                    'Explicit termination of eng {} from {}'.format(
+                    "Explicit termination of eng {} from {}".format(
                         uuid, detail.date_from
                     )
                 )
@@ -431,66 +419,57 @@ class ImportUtility(object):
                 return uuid
             if isinstance(detail, EngagementTerminationType):
                 logger.info(
-                    'Explicit termination of eng {}'.format(
-                        detail.engagement_uuid
-                    )
+                    "Explicit termination of eng {}".format(detail.engagement_uuid)
                 )
-                self._terminate_details(detail.engagement_uuid, 'engagement')
+                self._terminate_details(detail.engagement_uuid, "engagement")
                 return uuid
 
         if details:
             additional_payload = []
             for detail in details:
-
                 if not detail.date_from:
                     detail.date_from = self.date_from
 
                 # Create payload (as dict)
-                detail_payload = self.build_detail(
-                    detail=detail,
-                    employee_uuid=uuid
-                )
+                detail_payload = self.build_detail(detail=detail, employee_uuid=uuid)
 
                 if not detail_payload:
                     continue
 
                 # If we do not have existing data, the new data should be imported
-                if len(data[detail_payload['type']]) == 0 and re_import == 'NO':
-                    re_import = 'UPDATE'
-                elif data[detail_payload['type']]:
+                if len(data[detail_payload["type"]]) == 0 and re_import == "NO":
+                    re_import = "UPDATE"
+                elif data[detail_payload["type"]]:
                     found_hit = self._payload_compare(detail_payload, data)
                     if not found_hit:
-                        re_import = 'YES'
+                        re_import = "YES"
                 additional_payload.append(detail_payload)
 
             for item in additional_payload:
-                valid_from = item['validity']['from']
-                valid_to = item['validity']['to']
+                valid_from = item["validity"]["from"]
+                valid_to = item["validity"]["to"]
                 now = datetime.now()
-                py_from = datetime.strptime(valid_from, '%Y-%m-%d')
+                py_from = datetime.strptime(valid_from, "%Y-%m-%d")
                 if valid_to is not None:
-                    py_to = datetime.strptime(valid_to, '%Y-%m-%d')
+                    py_to = datetime.strptime(valid_to, "%Y-%m-%d")
                 else:
-                    py_to = datetime.strptime('2200-01-01', '%Y-%m-%d')
+                    py_to = datetime.strptime("2200-01-01", "%Y-%m-%d")
 
-                logger.debug(
-                    'Py-from:{}, Py-to:{}, Now:{}'.format(py_from, py_to, now)
-                )
-                if re_import == 'YES' and py_from < now and py_to > now:
-                    logger.debug('Updating valid_from')
-                    valid_from = datetime.now().strftime('%Y-%m-%d')  # today
-                    item['validity']['from'] = valid_from
+                logger.debug("Py-from:{}, Py-to:{}, Now:{}".format(py_from, py_to, now))
+                if re_import == "YES" and py_from < now and py_to > now:
+                    logger.debug("Updating valid_from")
+                    valid_from = datetime.now().strftime("%Y-%m-%d")  # today
+                    item["validity"]["from"] = valid_from
 
-            logger.info('Re-import: {}'.format(re_import))
+            logger.info("Re-import: {}".format(re_import))
 
-            if re_import == 'YES':
-                logger.info('Non-explicit termination: {}'.format(uuid))
+            if re_import == "YES":
+                logger.info("Non-explicit termination: {}".format(uuid))
                 self._terminate_employee(uuid)
 
-            if re_import in ('YES', 'NEW', 'UPDATE'):
+            if re_import in ("YES", "NEW", "UPDATE"):
                 self.insert_mora_data(
-                    resource="details/create",
-                    data=additional_payload
+                    resource="details/create", data=additional_payload
                 )
 
         return uuid
@@ -526,16 +505,14 @@ class ImportUtility(object):
             ("type_ref", "type_ref_uuid"),
             ("job_function_ref", "job_function_uuid"),
             ("address_type_ref", "address_type_uuid"),
-            ("manager_level_ref", "manager_level_uuid")
+            ("manager_level_ref", "manager_level_uuid"),
         ]
 
         for check_value, set_value in common_attributes:
             if not hasattr(detail, check_value):
                 continue
 
-            uuid = self.inserted_klasse_map.get(
-                getattr(detail, check_value)
-            )
+            uuid = self.inserted_klasse_map.get(getattr(detail, check_value))
 
             setattr(detail, set_value, uuid)
 
@@ -545,23 +522,17 @@ class ImportUtility(object):
                 detail.visibility_ref
             )
 
-        if hasattr(detail, 'primary_ref'):
-            detail.primary_uuid = self.inserted_klasse_map.get(
-                detail.primary_ref
-            )
+        if hasattr(detail, "primary_ref"):
+            detail.primary_uuid = self.inserted_klasse_map.get(detail.primary_ref)
 
         if hasattr(detail, "org_unit_ref"):
-            detail.org_unit_uuid = self.inserted_org_unit_map.get(
-                detail.org_unit_ref
-            )
+            detail.org_unit_uuid = self.inserted_org_unit_map.get(detail.org_unit_ref)
 
         if hasattr(detail, "organisation_uuid"):
             detail.organisation_uuid = self.organisation_uuid
 
         if hasattr(detail, "itsystem_ref"):
-            detail.itsystem_uuid = self.inserted_itsystem_map.get(
-                detail.itsystem_ref
-            )
+            detail.itsystem_uuid = self.inserted_itsystem_map.get(detail.itsystem_ref)
 
         if hasattr(detail, "responsibilities"):
             detail.responsibilities = [
@@ -575,31 +546,22 @@ class ImportUtility(object):
         service_url = f"{self.mox_base}/{resource}"
 
         if uuid:
-            update_url = "{service}/{uuid}".format(
-                service=service_url,
-                uuid=uuid
-            )
+            update_url = "{service}/{uuid}".format(service=service_url, uuid=uuid)
 
-            response = self.session.put(
-                url=update_url,
-                json=data
-            )
+            response = self.session.put(url=update_url, json=data)
 
             if response.status_code != 200:
                 logger.error(
-                    'Mox put. Response: {}, data'.format(response.text, data)
+                    "Mox put. Response: {}, data: {}".format(response.text, data)
                 )
                 raise HTTPError("Inserting mox data failed")
 
         else:
-            response = self.session.post(
-                url=service_url,
-                json=data
-            )
+            response = self.session.post(url=service_url, json=data)
 
             if response.status_code != 201:
                 logger.error(
-                    'Mox post. Response: {}, data'.format(response.text, data)
+                    "Mox post. Response: {}, data: {}".format(response.text, data)
                 )
 
                 raise HTTPError("Inserting mox data failed")
@@ -608,7 +570,6 @@ class ImportUtility(object):
         return response_data["uuid"]
 
     def insert_mora_data(self, resource, data, uuid=None):
-
         # TESTING
         if self.dry_run:
             uuid = uuid4()
@@ -618,10 +579,10 @@ class ImportUtility(object):
         # This is necessary due to sporadic and temporary failures on the network
         try:
             for attempt in Retrying(
-                stop=stop_after_attempt(self.mo_request_retries), wait=wait_fixed(self.mo_request_retry_delay)
+                stop=stop_after_attempt(self.mo_request_retries),
+                wait=wait_fixed(self.mo_request_retry_delay),
             ):
                 with attempt:
-
                     response = self.mh._mo_post(
                         url=resource,
                         payload=data,
@@ -629,22 +590,24 @@ class ImportUtility(object):
                     )
 
                     if response.status_code == 400:
-                        error = response.json()['description']
-                        if error.find('does not give raise to a new registration') > 0:
-                            uuid_start = error.find('with id [')
-                            uuid = error[uuid_start+9:uuid_start+45]
+                        error = response.json()["description"]
+                        if error.find("does not give raise to a new registration") > 0:
+                            uuid_start = error.find("with id [")
+                            uuid = error[uuid_start + 9 : uuid_start + 45]
                             try:
                                 UUID(uuid, version=4)
                             except ValueError:
-                                raise Exception('Unable to read uuid')
+                                raise Exception("Unable to read uuid")
                         else:
                             logger.error(
-                                'MO post. Error: {}, data: {}'.format(error, data)
+                                "MO post. Error: {}, data: {}".format(error, data)
                             )
                             raise HTTPError("Inserting mora data failed")
                     elif response.status_code not in (200, 201):
                         logger.error(
-                            'MO post. Response: {}, data: {}'.format(response.text, data)
+                            "MO post. Response: {}, data: {}".format(
+                                response.text, data
+                            )
                         )
                         raise HTTPError("Inserting mora data failed")
                     else:
@@ -657,49 +620,36 @@ class ImportUtility(object):
             retry_error.reraise()
 
     def _terminate_employee(self, uuid, date_from=None):
-        endpoint = 'e/{}/terminate'
+        endpoint = "e/{}/terminate"
         yesterday = datetime.now() - timedelta(days=1)
         if date_from:
             to = date_from
         else:
-            to = yesterday.strftime('%Y-%m-%d')
+            to = yesterday.strftime("%Y-%m-%d")
 
-        payload = {
-            'terminate_all': True,
-            'validity': {
-                'to': to
-            }
-        }
+        payload = {"terminate_all": True, "validity": {"to": to}}
         resource = endpoint.format(uuid)
 
-        self.insert_mora_data(
-            resource=resource,
-            data=payload
-        )
+        self.insert_mora_data(resource=resource, data=payload)
         return uuid
 
     def _terminate_details(self, uuid, detail_type):
-        logger.info('Terminate detail {}:  {}'.format(uuid, detail_type))
+        logger.info("Terminate detail {}:  {}".format(uuid, detail_type))
         yesterday = datetime.now() - timedelta(days=1)
         payload = {
-            'type': detail_type,
-            'uuid': uuid,
-            'validity': {
-                'to': yesterday.strftime('%Y-%m-%d')
-            }
+            "type": detail_type,
+            "uuid": uuid,
+            "validity": {"to": yesterday.strftime("%Y-%m-%d")},
         }
-        logger.debug('Terminate detail payload: {}'.format(payload))
+        logger.debug("Terminate detail payload: {}".format(payload))
         try:
-            self.insert_mora_data(
-                resource='details/terminate',
-                data=payload
-            )
+            self.insert_mora_data(resource="details/terminate", data=payload)
         except HTTPError:
-            logger.info('Tried to terminate a non-existing uuid')
+            logger.info("Tried to terminate a non-existing uuid")
         return uuid
 
     def _std_compare(self, item_payload, data_item, extra_field=None):
-        """ Helper for _payload_compare, performs the checks that are identical
+        """Helper for _payload_compare, performs the checks that are identical
         for most object types.
         :param item_payload: The new payload data.
         :param data_item: The existing set of data.
@@ -708,19 +658,19 @@ class ImportUtility(object):
         :return: True if identical, otherwise False
         """
         identical = (
-            (data_item['org_unit']['uuid'] == item_payload['org_unit']['uuid']) and
-            (data_item['validity']['from'] == item_payload['validity']['from']) and
-            (data_item['validity']['to'] == item_payload['validity']['to'])
+            (data_item["org_unit"]["uuid"] == item_payload["org_unit"]["uuid"])
+            and (data_item["validity"]["from"] == item_payload["validity"]["from"])
+            and (data_item["validity"]["to"] == item_payload["validity"]["to"])
         )
         if extra_field is not None:
             identical = (
-                identical and
-                data_item[extra_field]['uuid'] == item_payload[extra_field]['uuid']
+                identical
+                and data_item[extra_field]["uuid"] == item_payload[extra_field]["uuid"]
             )
         return identical
 
     def _payload_compare(self, item_payload, data):
-        """ Compare an exising data-set with a new payload and tell whether
+        """Compare an exising data-set with a new payload and tell whether
         the new payload is different from the exiting data.
         :param item_payload: New the payload data.
         :param data_item: The existing set of data.
@@ -728,83 +678,77 @@ class ImportUtility(object):
         field, otherwise the comparison is only performed on uuid and validity.
         :return: True if identical, otherwise False
         """
-        data_type = item_payload['type']
+        data_type = item_payload["type"]
 
         logger.debug(
-            'Payload compare. item_payload: {}, data: {}'.format(item_payload, data)
+            "Payload compare. item_payload: {}, data: {}".format(item_payload, data)
         )
 
         found_hit = False
-        if data_type == 'engagement':
+        if data_type == "engagement":
             # In priciple, we should be able to re-calculate the hash stored in
             # integration data and compare directly from that.
             for data_item in data[data_type]:
-                if (self._std_compare(item_payload, data_item, 'job_function') and
-                    item_payload['user_key'] == data_item['user_key'] and
-                    item_payload['fraction'] == data_item['fraction']):
-                    found_hit = True
-
-        elif data_type == 'role':
-            for data_item in data[data_type]:
-                if self._std_compare(item_payload, data_item, 'role_type'):
-                    found_hit = True
-                    logger.debug('Found hit in role')
-        elif data_type == 'leave':
-            for data_item in data[data_type]:
-                if ((data_item['validity']['from'] ==
-                     item_payload['validity']['from']) and
-
-                    (data_item['validity']['to'] ==
-                     item_payload['validity']['to'])):
-                    found_hit = True
-                    logger.debug('Found hit in leave')
-        elif data_type == 'it':
-            for data_item in data[data_type]:
                 if (
-                    (data_item['validity']['from'] ==
-                     item_payload['validity']['from']) and
-
-                    (data_item['validity']['to'] ==
-                     item_payload['validity']['to']) and
-
-                    (data_item['itsystem']['uuid'] ==
-                     item_payload['itsystem']['uuid'])
+                    self._std_compare(item_payload, data_item, "job_function")
+                    and item_payload["user_key"] == data_item["user_key"]
+                    and item_payload["fraction"] == data_item["fraction"]
                 ):
                     found_hit = True
-                    logger.debug('Found hit in it')
-        elif data_type == 'address':
+
+        elif data_type == "role":
+            for data_item in data[data_type]:
+                if self._std_compare(item_payload, data_item, "role_type"):
+                    found_hit = True
+                    logger.debug("Found hit in role")
+        elif data_type == "leave":
             for data_item in data[data_type]:
                 if (
-                    (data_item['validity']['from'] ==
-                     item_payload['validity']['from']) and
-
-                    (data_item['validity']['to'] ==
-                     item_payload['validity']['to']) and
-
-                    (data_item['value'] == item_payload['value'])
+                    data_item["validity"]["from"] == item_payload["validity"]["from"]
+                ) and (data_item["validity"]["to"] == item_payload["validity"]["to"]):
+                    found_hit = True
+                    logger.debug("Found hit in leave")
+        elif data_type == "it":
+            for data_item in data[data_type]:
+                if (
+                    (data_item["validity"]["from"] == item_payload["validity"]["from"])
+                    and (data_item["validity"]["to"] == item_payload["validity"]["to"])
+                    and (
+                        data_item["itsystem"]["uuid"]
+                        == item_payload["itsystem"]["uuid"]
+                    )
                 ):
                     found_hit = True
-                    logger.debug('Found hit in adress')
-        elif data_type == 'manager':
+                    logger.debug("Found hit in it")
+        elif data_type == "address":
             for data_item in data[data_type]:
-                identical = self._std_compare(item_payload, data_item,
-                                              'manager_level')
+                if (
+                    (data_item["validity"]["from"] == item_payload["validity"]["from"])
+                    and (data_item["validity"]["to"] == item_payload["validity"]["to"])
+                    and (data_item["value"] == item_payload["value"])
+                ):
+                    found_hit = True
+                    logger.debug("Found hit in adress")
+        elif data_type == "manager":
+            for data_item in data[data_type]:
+                identical = self._std_compare(item_payload, data_item, "manager_level")
                 uuids = []
-                for item in item_payload['responsibility']:
-                    uuids.append(item['uuid'])
-                for responsibility in data_item['responsibility']:
-                    identical = identical and (responsibility['uuid'] in uuids)
-                identical = (identical and
-                             (len(data_item['responsibility']) == len(uuids)))
+                for item in item_payload["responsibility"]:
+                    uuids.append(item["uuid"])
+                for responsibility in data_item["responsibility"]:
+                    identical = identical and (responsibility["uuid"] in uuids)
+                identical = identical and (
+                    len(data_item["responsibility"]) == len(uuids)
+                )
                 if identical:
                     found_hit = True
-                    logger.debug('Found  hit in manager')
-        elif data_type == 'association':
+                    logger.debug("Found  hit in manager")
+        elif data_type == "association":
             for data_item in data[data_type]:
-                if self._std_compare(item_payload, data_item, 'association_type'):
+                if self._std_compare(item_payload, data_item, "association_type"):
                     found_hit = True
-                    logger.debug('Found hit in association')
+                    logger.debug("Found hit in association")
         else:
-            raise Exception('Uknown detail!')
-        logger.info('Found hit: {}'.format(found_hit))
+            raise Exception("Uknown detail!")
+        logger.info("Found hit: {}".format(found_hit))
         return found_hit

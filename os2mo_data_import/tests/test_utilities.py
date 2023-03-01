@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 #
 # Copyright (c) Magenta ApS
 #
@@ -5,13 +7,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 from parameterized import parameterized
-from requests.exceptions import HTTPError
 from requests import Response
+from requests.exceptions import HTTPError
 
 from os2mo_data_import.utilities import ImportUtility
 
@@ -29,7 +30,7 @@ def test_retrying_mo_data_insertion_should_pass_in_less_max_10_tries(retries):
     r.json = mock_json
 
     mora_helper = MagicMock()
-    mora_helper._mo_post.side_effect = retries*[HTTPError()] + [r]
+    mora_helper._mo_post.side_effect = retries * [HTTPError()] + [r]
     import_utility.mh = mora_helper
 
     # Act
@@ -45,7 +46,7 @@ def test_retrying_mo_data_insertion_should_fail_after_10_retries():
     import_utility.mo_request_retry_delay = 0.05
 
     mora_helper = MagicMock()
-    mora_helper._mo_post.side_effect = 10*[HTTPError()]
+    mora_helper._mo_post.side_effect = 10 * [HTTPError()]
     import_utility.mh = mora_helper
 
     # Act + Assert

@@ -1,22 +1,33 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import asyncio
-from asyncio import as_completed, gather, run, sleep
+from asyncio import as_completed
+from asyncio import gather
+from asyncio import run
+from asyncio import sleep
 from contextlib import asynccontextmanager
-from itertools import groupby, starmap
-from typing import Callable, Coroutine, Iterable, List, Optional, Tuple, Type
+from itertools import groupby
+from itertools import starmap
+from typing import Callable
+from typing import Coroutine
+from typing import Iterable
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Type
 from uuid import UUID
 
-from aiohttp import ClientSession, TCPConnector
+from aiohttp import ClientSession
+from aiohttp import TCPConnector
 from more_itertools import chunked
 from ra_utils.tqdm_wrapper import tqdm
 
-from os2mo_data_import.Clients.MO.model import (
-    Address,
-    Employee,
-    Engagement,
-    EngagementAssociation,
-    Manager,
-    OrgUnit,
-)
+from os2mo_data_import.Clients.MO.model import Address
+from os2mo_data_import.Clients.MO.model import Employee
+from os2mo_data_import.Clients.MO.model import Engagement
+from os2mo_data_import.Clients.MO.model import EngagementAssociation
+from os2mo_data_import.Clients.MO.model import Manager
+from os2mo_data_import.Clients.MO.model import OrgUnit
 from os2mo_data_import.Clients.MO.model_parts.interface import MoObj
 from os2mo_data_import.Clients.util import uuid_to_str
 
@@ -134,9 +145,7 @@ class Client:
 
         raise TypeError(f"unknown type: {current_type}")
 
-    async def __submit_payloads(
-        self, objs: Iterable[MoObj], disable_progressbar=False
-    ):
+    async def __submit_payloads(self, objs: Iterable[MoObj], disable_progressbar=False):
         objs = list(objs)
         groups = groupby(objs, lambda x: type(x).__name__)
         chunked_groups: List[Tuple[str, Iterable[List[MoObj]]]] = [
@@ -153,7 +162,7 @@ class Client:
             for f in tqdm(
                 as_completed(tasks),
                 total=len(tasks),
-                unit=f"chunk",
+                unit="chunk",
                 desc=key,
                 disable=disable_progressbar,
             ):

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 #
 # Copyright (c) Magenta ApS
 #
@@ -5,17 +7,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 import logging
 from urllib.parse import urljoin
 
-from os2mo_data_import.mox_data_types import (
-    Organisation,
-    Klassifikation,
-    Facet,
-    Klasse,
-    Itsystem,
-)
+from os2mo_data_import.mox_data_types import Facet
+from os2mo_data_import.mox_data_types import Itsystem
+from os2mo_data_import.mox_data_types import Klasse
+from os2mo_data_import.mox_data_types import Klassifikation
+from os2mo_data_import.mox_data_types import Organisation
 from os2mo_data_import.utilities import ImportUtility
 
 logger = logging.getLogger("moImporterUtilities")
@@ -49,10 +48,10 @@ class CachingImportUtility(ImportUtility):
         service_url = urljoin(base=self.mox_base, url=resource)
         r = self.session.get(service_url, params=params)
         r.raise_for_status()
-        results = r.json()['results'][0]
+        results = r.json()["results"][0]
         if len(results) > 1:
             raise ValueError(
-                'More than one result found on resource {} with params {}'.format(
+                "More than one result found on resource {} with params {}".format(
                     resource, params
                 )
             )
@@ -61,7 +60,7 @@ class CachingImportUtility(ImportUtility):
     def import_organisation(self, reference, organisation: Organisation):
         resource = "organisation/organisation"
 
-        r = self._get_from_mox(resource, params={'bvn': organisation.user_key})
+        r = self._get_from_mox(resource, params={"bvn": organisation.user_key})
         if r:
             org_uuid = r[0]
             self.organisation_uuid = org_uuid
@@ -71,7 +70,7 @@ class CachingImportUtility(ImportUtility):
 
     def import_klassifikation(self, reference, klassifikation: Klassifikation):
         resource = "klassifikation/klassifikation"
-        r = self._get_from_mox(resource, params={'bvn': klassifikation.user_key})
+        r = self._get_from_mox(resource, params={"bvn": klassifikation.user_key})
         if r:
             klassifikation_uuid = r[0]
             self.klassifikation_uuid = klassifikation_uuid
@@ -81,7 +80,7 @@ class CachingImportUtility(ImportUtility):
 
     def import_facet(self, reference, facet: Facet):
         resource = "klassifikation/facet"
-        r = self._get_from_mox(resource, params={'bvn': facet.user_key})
+        r = self._get_from_mox(resource, params={"bvn": facet.user_key})
         if r:
             facet_uuid = r[0]
             self.inserted_facet_map[reference] = facet_uuid
@@ -91,7 +90,7 @@ class CachingImportUtility(ImportUtility):
 
     def import_klasse(self, reference, klasse: Klasse):
         resource = "klassifikation/klasse"
-        r = self._get_from_mox(resource, params={'bvn': klasse.user_key})
+        r = self._get_from_mox(resource, params={"bvn": klasse.user_key})
         if r:
             klasse_uuid = r[0]
             self.inserted_klasse_map[reference] = klasse_uuid
@@ -100,8 +99,8 @@ class CachingImportUtility(ImportUtility):
             return super().import_klasse(reference, klasse)
 
     def import_itsystem(self, reference, itsystem: Itsystem):
-        resource = 'organisation/itsystem'
-        r = self._get_from_mox(resource, params={'bvn': itsystem.user_key})
+        resource = "organisation/itsystem"
+        r = self._get_from_mox(resource, params={"bvn": itsystem.user_key})
         if r:
             itsystem_uuid = r[0]
             self.inserted_itsystem_map[reference] = itsystem_uuid

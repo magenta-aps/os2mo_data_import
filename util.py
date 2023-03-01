@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import hashlib
 import uuid
 from functools import lru_cache
@@ -12,5 +14,5 @@ def generate_uuid(seed):
     from MO
     """
     m = hashlib.md5()
-    m.update(seed.encode('utf-8'))
+    m.update(seed.encode("utf-8"))
     return uuid.UUID(m.hexdigest())

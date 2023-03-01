@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import asyncio
 import json
 import sys
@@ -10,13 +12,15 @@ from typing import Tuple
 import click
 from more_itertools import bucket
 from more_itertools import flatten
-from more_itertools import unzip, only
+from more_itertools import only
+from more_itertools import unzip
+from ra_utils.load_settings import load_settings
+
 from mox_helpers.mox_helper import create_mox_helper
 from mox_helpers.payloads import lora_facet
 from mox_helpers.payloads import lora_klasse
 from mox_helpers.utils import async_to_sync
 from mox_helpers.utils import dict_map
-from ra_utils.load_settings import load_settings
 
 
 @click.group()
@@ -178,13 +182,18 @@ async def ensure_class_exists_helper(
 async def ensure_class_in_lora(facet: str, klasse: str, **kwargs) -> Tuple[str, bool]:
     """Ensures class exists in lora.
 
-    Returns the uuid of the existing class or creates it and returns uuid of the new class.
-    Uses mox_utils ensure_class_exists but caches results, so subsequent calls with same parameters will return the correct uuid without any calls to lora.
-    Returns a tuple contaning a uuid of the class and a boolean of wether it was created or not.
-    Remember that the 'created' boolean is also cached so it will only show if it was created the first time this was called.
+    Returns the uuid of the existing class or creates it and returns uuid of the new
+    class.
+    Uses mox_utils ensure_class_exists but caches results, so subsequent calls with
+    same parameters will return the correct uuid without any calls to lora.
+    Returns a tuple contaning a uuid of the class and a boolean of wether it was
+    created or not.
+    Remember that the 'created' boolean is also cached so it will only show if it was
+    created the first time this was called.
     Example:
         uuid, _ = ensure_class_in_lora('org_unit_type', 'Enhed')
-        uuid, _ = ensure_class_in_lora('employee_address_type', 'Email', scope = 'EMAIL')
+        uuid, _ =
+            ensure_class_in_lora('employee_address_type', 'Email', scope = 'EMAIL')
     """
     settings = load_settings()
     mox_base = settings.get("mox.base")
@@ -261,7 +270,7 @@ async def ensure_class_value_helper(
     if bvn:
         try:
             uuid = await mox_helper.read_element_klassifikation_klasse({"bvn": bvn})
-        except:
+        except Exception:
             message = "No class with bvn={} was found.".format(bvn)
             click.secho(message, fg="red")
             return
@@ -309,12 +318,17 @@ async def ensure_class_value_helper(
         if not old_owner:
             changed = True
         else:
-            #Check if anything is changed, either the owner value, or if the validity is not -infinity->infinity 
+            # Check if anything is changed, either the owner value, or if the validity
+            # is not -infinity->infinity
             # as this is invalid according to MOs datamodels, (Redmine: #52422)
-            changed = any([old_owner.get("uuid") != new_value, 
-            owner[0]["virkning"]["from"] != virkning["from"],
-            owner[0]["virkning"]["to"] != virkning["to"]])
-            
+            changed = any(
+                [
+                    old_owner.get("uuid") != new_value,
+                    owner[0]["virkning"]["from"] != virkning["from"],
+                    owner[0]["virkning"]["to"] != virkning["to"],
+                ]
+            )
+
         if changed:
             klasse["relationer"]["ejer"] = [
                 {

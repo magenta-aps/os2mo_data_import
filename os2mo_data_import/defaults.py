@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 #
 # Copyright (c) Magenta ApS
 #
@@ -5,7 +7,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 """
 The OS2MO application requires a fixed set of "Facet" objects.
 By default the following types are automatically created:
@@ -48,5 +49,5 @@ facet_defaults = [
     "time_planning",
     "org_unit_level",
     "primary_type",
-    "org_unit_hierarchy"
+    "org_unit_hierarchy",
 ]

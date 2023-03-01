@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 #
 # Copyright (c) Magenta ApS
 #
@@ -16,7 +18,7 @@ def mora_type_config(mox_base):
     MoType.mox_base = mox_base
 
 
-class MoType():
+class MoType:
     """
     Base class for all Mo (MORA) type objects
 
@@ -90,21 +92,14 @@ class MoType():
             self.payload["type"] = self.type_id
 
         if self.person_uuid:
-            self.payload["person"] = {
-                "uuid": self.person_uuid
-            }
+            self.payload["person"] = {"uuid": self.person_uuid}
 
         if self.org_unit_uuid:
-            self.payload["org_unit"] = {
-                "uuid": self.org_unit_uuid
-            }
+            self.payload["org_unit"] = {"uuid": self.org_unit_uuid}
 
         # Add validity:
-        self.payload["validity"] = {
-            "from": self.date_from,
-            "to": self.date_to
-        }
-        logger.debug('Mo payload: {}'.format(self.payload))
+        self.payload["validity"] = {"from": self.date_from, "to": self.date_to}
+        logger.debug("Mo payload: {}".format(self.payload))
         return self.payload
 
     def __repr__(self):
@@ -139,8 +134,9 @@ class AddressType(MoType):
     :param str date_to: End date e.g. "1982-01-01"
     """
 
-    def __init__(self, value, type_ref, date_from,
-                 date_to=None, uuid=None, visibility=None):
+    def __init__(
+        self, value, type_ref, date_from, date_to=None, uuid=None, visibility=None
+    ):
         super().__init__()
 
         self.type_id = "address"
@@ -175,16 +171,12 @@ class AddressType(MoType):
 
         self.payload = {
             "value": self.value,
-            "org": {
-                "uuid": self.organisation_uuid
-            },
-            "address_type": {
-                "uuid": self.type_ref_uuid
-            }
+            "org": {"uuid": self.organisation_uuid},
+            "address_type": {"uuid": self.type_ref_uuid},
         }
 
         if self.visibility_ref:
-            self.payload['visibility'] = {'uuid': self.visibility_ref_uuid}
+            self.payload["visibility"] = {"uuid": self.visibility_ref_uuid}
         return self._build_payload()
 
 
@@ -207,9 +199,19 @@ class EngagementType(MoType):
     :param str date_to: End date e.g. "1982-01-01"
     """
 
-    def __init__(self, org_unit_ref, job_function_ref, engagement_type_ref,
-                 date_from, date_to=None, uuid=None, user_key=None, fraction=None,
-                 primary_ref=None, **kwargs):
+    def __init__(
+        self,
+        org_unit_ref,
+        job_function_ref,
+        engagement_type_ref,
+        date_from,
+        date_to=None,
+        uuid=None,
+        user_key=None,
+        fraction=None,
+        primary_ref=None,
+        **kwargs
+    ):
         super().__init__()
 
         self.type_id = "engagement"
@@ -217,7 +219,7 @@ class EngagementType(MoType):
         if user_key:
             self.user_key = user_key
         else:
-            self.user_key = '-'
+            self.user_key = "-"
 
         if fraction:
             self.fraction = fraction
@@ -254,9 +256,7 @@ class EngagementType(MoType):
         if not self.org_unit_uuid:
             raise ValueError("empty org_unit_uuid")
 
-        self.payload["org_unit"] = {
-              "uuid": self.org_unit_uuid
-        }
+        self.payload["org_unit"] = {"uuid": self.org_unit_uuid}
 
         # We are not yet at a level, where we are ready to force uuid's on
         # engagements. Similarly, we do no attempts of sharing engagement objects
@@ -266,39 +266,32 @@ class EngagementType(MoType):
         # setting, the value is just always written.
         # The unique key is calculated as hash over the individual parts of the
         # engagement
-        resource = 'organisation/organisationfunktion'
         hash_value = hashlib.sha256()
-        hash_value.update(str(self.org_unit_ref).encode('utf-8'))
-        hash_value.update(str(self.type_ref).encode('utf-8'))
-        hash_value.update(str(self.job_function_ref).encode('utf-8'))
+        hash_value.update(str(self.org_unit_ref).encode("utf-8"))
+        hash_value.update(str(self.type_ref).encode("utf-8"))
+        hash_value.update(str(self.job_function_ref).encode("utf-8"))
         if self.date_from:
-            hash_value.update(self.date_from.encode('ascii'))
+            hash_value.update(self.date_from.encode("ascii"))
         if self.date_to:
-            hash_value.update(self.date_to.encode('ascii'))
+            hash_value.update(self.date_to.encode("ascii"))
 
         if self.primary_uuid:
-            self.payload['primary'] = {
-                'uuid': self.primary_uuid
-            }
+            self.payload["primary"] = {"uuid": self.primary_uuid}
 
         # Reference the job function uuid
         if not self.job_function_uuid:
             raise ReferenceError("Reference to job function is missing")
 
-        self.payload["job_function"] = {
-            "uuid": self.job_function_uuid
-        }
+        self.payload["job_function"] = {"uuid": self.job_function_uuid}
 
         # Reference the engagement type uuid
         if not self.type_ref_uuid:
             raise ReferenceError("Reference to engagenment type is missing")
 
-        self.payload["engagement_type"] = {
-            "uuid": self.type_ref_uuid
-        }
+        self.payload["engagement_type"] = {"uuid": self.type_ref_uuid}
         if self.user_key:
-            self.payload['user_key'] = self.user_key
-        self.payload['fraction'] = self.fraction
+            self.payload["user_key"] = self.user_key
+        self.payload["fraction"] = self.fraction
 
         # Todo: Consider a check for the value of the keys.
         self.payload.update(self.extentions)
@@ -345,9 +338,17 @@ class AssociationType(MoType):
     :param str date_to: End date e.g. "1982-01-01".
     """
 
-    def __init__(self, association_type_ref, org_unit_ref, date_from,
-                 date_to=None, address_uuid=None, address_type_ref=None,
-                 uuid=None, user_key=None):
+    def __init__(
+        self,
+        association_type_ref,
+        org_unit_ref,
+        date_from,
+        date_to=None,
+        address_uuid=None,
+        address_type_ref=None,
+        uuid=None,
+        user_key=None,
+    ):
         super().__init__()
 
         self.type_id = "association"
@@ -356,7 +357,7 @@ class AssociationType(MoType):
         if user_key:
             self.user_key = user_key
         else:
-            self.user_key = '-'
+            self.user_key = "-"
 
         self.org_unit_ref = org_unit_ref
         self.org_unit_uuid = None
@@ -367,7 +368,7 @@ class AssociationType(MoType):
         self.address_uuid = address_uuid
 
         # Workaround for address_type_ref
-        self.address_type_ref = (address_type_ref or "AdressePostEmployee")
+        self.address_type_ref = address_type_ref or "AdressePostEmployee"
         self.address_type_uuid = None
 
         self.date_from = date_from
@@ -387,22 +388,16 @@ class AssociationType(MoType):
 
         self.payload = {
             "user_key": self.user_key,
-            "org_unit": {
-                "uuid": self.org_unit_uuid
-            },
-            "association_type": {
-                "uuid": self.type_ref_uuid
-            }
+            "org_unit": {"uuid": self.org_unit_uuid},
+            "association_type": {"uuid": self.type_ref_uuid},
         }
 
         # TODO: We removed addresses from associations, right?
         if self.address_uuid:
             self.payload["address"] = {
                 "uuid": self.address_uuid,
-                "address_type": {
-                    "uuid": self.address_type_uuid
-                },
-                'user_key': self.user_key
+                "address_type": {"uuid": self.address_type_uuid},
+                "user_key": self.user_key,
             }
         return self._build_payload()
 
@@ -446,9 +441,7 @@ class ItsystemType(MoType):
 
         self.payload = {
             "user_key": self.user_key,
-            "itsystem": {
-                "uuid": self.itsystem_uuid
-            }
+            "itsystem": {"uuid": self.itsystem_uuid},
         }
 
         return self._build_payload()
@@ -468,7 +461,9 @@ class LeaveType(MoType):
     :param str date_to: End date e.g. "1982-01-01"
     """
 
-    def __init__(self, leave_type_ref, engagement_uuid, date_from, date_to=None, uuid=None):
+    def __init__(
+        self, leave_type_ref, engagement_uuid, date_from, date_to=None, uuid=None
+    ):
         super().__init__()
 
         self.type_id = "leave"
@@ -493,7 +488,7 @@ class LeaveType(MoType):
 
         self.payload = {
             "leave_type": {"uuid": self.type_ref_uuid},
-            "engagement": {"uuid": self.engagement_uuid}
+            "engagement": {"uuid": self.engagement_uuid},
         }
 
         return self._build_payload()
@@ -550,12 +545,8 @@ class RoleType(MoType):
         """
 
         self.payload = {
-            "org_unit": {
-                "uuid": self.org_unit_uuid
-            },
-            "role_type": {
-                "uuid": self.type_ref_uuid
-            }
+            "org_unit": {"uuid": self.org_unit_uuid},
+            "role_type": {"uuid": self.type_ref_uuid},
         }
 
         return self._build_payload()
@@ -591,9 +582,19 @@ class ManagerType(MoType):
     :param str date_to: End date e.g. "1982-01-01"
     """
 
-    def __init__(self, org_unit, manager_type_ref, manager_level_ref,
-                 responsibility_list, date_from, date_to=None, user_key=None,
-                 address_uuid=None, address_type_ref=None, uuid=None):
+    def __init__(
+        self,
+        org_unit,
+        manager_type_ref,
+        manager_level_ref,
+        responsibility_list,
+        date_from,
+        date_to=None,
+        user_key=None,
+        address_uuid=None,
+        address_type_ref=None,
+        uuid=None,
+    ):
         super().__init__()
 
         self.type_id = "manager"
@@ -637,30 +638,20 @@ class ManagerType(MoType):
         """
 
         self.payload = {
-            'user_key': self.user_key,
-            "org_unit": {
-                "uuid": self.org_unit_uuid
-            },
-            "manager_type": {
-                "uuid": self.type_ref_uuid
-            },
-            "manager_level": {
-                "uuid": self.manager_level_uuid
-            },
+            "user_key": self.user_key,
+            "org_unit": {"uuid": self.org_unit_uuid},
+            "manager_type": {"uuid": self.type_ref_uuid},
+            "manager_level": {"uuid": self.manager_level_uuid},
             "responsibility": [
-                {
-                    "uuid": responsibility_uuid
-                }
+                {"uuid": responsibility_uuid}
                 for responsibility_uuid in self.responsibilities
-            ]
+            ],
         }
 
         if self.address_uuid:
             self.payload["address"] = {
                 "uuid": self.address_uuid,
-                "address_type": {
-                    "uuid": self.address_type_uuid
-                }
+                "address_type": {"uuid": self.address_type_uuid},
             }
 
         return self._build_payload()
@@ -681,14 +672,23 @@ class OrganisationUnitType(MoType):
     :param str date_to: End date e.g. "1982-01-01"
     """
 
-    def __init__(self, name, type_ref, date_from, date_to=None,
-                 user_key=None, time_planning_ref=None, org_unit_level_ref=None,
-                 parent_ref=None, uuid=None):
+    def __init__(
+        self,
+        name,
+        type_ref,
+        date_from,
+        date_to=None,
+        user_key=None,
+        time_planning_ref=None,
+        org_unit_level_ref=None,
+        parent_ref=None,
+        uuid=None,
+    ):
         super().__init__()
 
         self.uuid = uuid
         self.name = name
-        self.user_key = (user_key or name)
+        self.user_key = user_key or name
 
         self.parent_ref = parent_ref
         self.parent_uuid = None
@@ -725,22 +725,14 @@ class OrganisationUnitType(MoType):
         self.payload = {
             "user_key": self.user_key,
             "name": self.name,
-            "parent": {
-                "uuid": self.parent_uuid
-            },
-            "org_unit_type": {
-                "uuid": self.type_ref_uuid
-            }
+            "parent": {"uuid": self.parent_uuid},
+            "org_unit_type": {"uuid": self.type_ref_uuid},
         }
         if self.time_planning_ref:
-            self.payload["time_planning"] = {
-                "uuid": self.time_planning_ref_uuid
-            }
+            self.payload["time_planning"] = {"uuid": self.time_planning_ref_uuid}
 
         if self.org_unit_level_ref:
-            self.payload['org_unit_level'] = {
-                'uuid': self.org_unit_level_uuid
-            }
+            self.payload["org_unit_level"] = {"uuid": self.org_unit_level_uuid}
 
         return self._build_payload()
 
@@ -758,8 +750,9 @@ class EmployeeType(MoType):
     :param str/uuid uuid: The object uuid
     """
 
-    def __init__(self, name, cpr_no, org=None, uuid=None, user_key=None,
-                 seperate_names=False):
+    def __init__(
+        self, name, cpr_no, org=None, uuid=None, user_key=None, seperate_names=False
+    ):
         super().__init__()
 
         if isinstance(name, tuple):
@@ -767,7 +760,7 @@ class EmployeeType(MoType):
             self.surname = name[1]
         else:
             self.givenname = name.rsplit(" ", maxsplit=1)[0]
-            self.surname = name[len(self.givenname):].strip()
+            self.surname = name[len(self.givenname) :].strip()
         self.seperate_names = seperate_names
 
         self.cpr_no = cpr_no
@@ -796,15 +789,13 @@ class EmployeeType(MoType):
         self.payload = {
             "user_key": self.user_key,
             "cpr_no": self.cpr_no,
-            "org": {
-                "uuid": self.org_uuid
-            }
+            "org": {"uuid": self.org_uuid},
         }
 
         if self.seperate_names:
-            self.payload['givenname'] = self.givenname
-            self.payload['surname'] = self.surname
+            self.payload["givenname"] = self.givenname
+            self.payload["surname"] = self.surname
         else:
-            self.payload['name'] = self.givenname + ' ' + self.surname
+            self.payload["name"] = self.givenname + " " + self.surname
 
         return self._build_payload()

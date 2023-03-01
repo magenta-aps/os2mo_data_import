@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import asyncio
-import collections
 from functools import wraps
 
 
@@ -13,7 +14,7 @@ def async_to_sync(f):
             await sleep(seconds)
 
         sleepy(5)
-    
+
     Args:
         f (async function): The async function to wrap and make synchronous.
 

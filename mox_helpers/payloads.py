@@ -1,6 +1,5 @@
-import uuid
-
-
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 def _virkning(dato=None):
     if dato is None:
         dato = "1910-01-01 00:00:00"
@@ -14,9 +13,13 @@ def _virkning(dato=None):
 
 
 def lora_facet(bvn, org_uuid, description=None):
-
     attributter = {
-        "facetegenskaber": [{"brugervendtnoegle": bvn, "virkning": _virkning(),}]
+        "facetegenskaber": [
+            {
+                "brugervendtnoegle": bvn,
+                "virkning": _virkning(),
+            }
+        ]
     }
     if description:
         attributter["facetegenskaber"][0]["beskrivelse"] = description
@@ -63,9 +66,7 @@ def lora_klasse(
     if scope:
         attributter["klasseegenskaber"][0]["omfang"] = scope
     tilstande = {
-        "klassepubliceret": [
-            {"publiceret": "Publiceret", "virkning": _virkning(dato)}
-        ]
+        "klassepubliceret": [{"publiceret": "Publiceret", "virkning": _virkning(dato)}]
     }
     relationer = {
         "facet": [

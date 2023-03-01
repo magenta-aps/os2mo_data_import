@@ -1,7 +1,11 @@
-from abc import ABCMeta, abstractmethod
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+from abc import ABCMeta
+from abc import abstractmethod
 from typing import Optional
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
+from pydantic import Extra
 
 
 class ConfiguredBase(BaseModel):

@@ -1,29 +1,30 @@
-from typing import List, Literal, Optional
+# SPDX-FileCopyrightText: 2023 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+from typing import List
+from typing import Literal
+from typing import Optional
 from uuid import UUID
 
-from pydantic import Field
-
-from os2mo_data_import.Clients.LoRa.model_parts.interface import LoraObj
+from os2mo_data_import.Clients.MO.model_parts.implementations import AddressType
 from os2mo_data_import.Clients.MO.model_parts.implementations import (
-    AddressType,
     EngagementAssociationType,
-    EngagementRef,
-    EngagementType,
-    JobFunction,
-    ManagerLevel,
-    ManagerType,
-    OrganisationRef,
-    OrgUnitHierarchy,
-    OrgUnitLevel,
-    OrgUnitRef,
-    OrgUnitType,
-    Parent,
-    Person,
-    Primary,
-    Responsibility,
-    Validity,
-    Visibility,
 )
+from os2mo_data_import.Clients.MO.model_parts.implementations import EngagementRef
+from os2mo_data_import.Clients.MO.model_parts.implementations import EngagementType
+from os2mo_data_import.Clients.MO.model_parts.implementations import JobFunction
+from os2mo_data_import.Clients.MO.model_parts.implementations import ManagerLevel
+from os2mo_data_import.Clients.MO.model_parts.implementations import ManagerType
+from os2mo_data_import.Clients.MO.model_parts.implementations import OrganisationRef
+from os2mo_data_import.Clients.MO.model_parts.implementations import OrgUnitHierarchy
+from os2mo_data_import.Clients.MO.model_parts.implementations import OrgUnitLevel
+from os2mo_data_import.Clients.MO.model_parts.implementations import OrgUnitRef
+from os2mo_data_import.Clients.MO.model_parts.implementations import OrgUnitType
+from os2mo_data_import.Clients.MO.model_parts.implementations import Parent
+from os2mo_data_import.Clients.MO.model_parts.implementations import Person
+from os2mo_data_import.Clients.MO.model_parts.implementations import Primary
+from os2mo_data_import.Clients.MO.model_parts.implementations import Responsibility
+from os2mo_data_import.Clients.MO.model_parts.implementations import Validity
+from os2mo_data_import.Clients.MO.model_parts.implementations import Visibility
 from os2mo_data_import.Clients.MO.model_parts.interface import MoObj
 
 
