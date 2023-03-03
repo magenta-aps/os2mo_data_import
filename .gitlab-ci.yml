@@ -67,7 +67,5 @@ Test on Python 3.11:
   image: python:3.11
 
 Release OS2mo-data-import to PyPI:
-  variables:
-    PYPI_TOKEN: ${OS2MO_DATA_IMPORT_PYPI_TOKEN}
   extends:
     - .release_to_pypi_cc
