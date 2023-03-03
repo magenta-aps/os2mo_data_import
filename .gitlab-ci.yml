@@ -65,7 +65,3 @@ include:
 Test on Python 3.11:
   extends: .pytest_extras
   image: python:3.11
-
-Release OS2mo-data-import to PyPI:
-  extends:
-    - .release_to_pypi_cc
