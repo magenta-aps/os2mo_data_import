@@ -346,8 +346,9 @@ class MoraHelper:
             "user_key": bvn,
             "scope": scope,
             "org_uuid": org_uuid,
-            "owner": str(owner) if owner else None,
         }
+        if owner:
+            payload.update({"owner": str(owner)})
         url = f"f/{facet}/"
         if uuid:
             payload.update({"uuid": str(uuid)})
