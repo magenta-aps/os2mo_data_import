@@ -11,9 +11,7 @@ packages = [
     { include = "os2mo_data_import" },
     { include = "os2mo_helpers" },
     { include = "mox_helpers" },
-    { include = "kle" },
 ]
-
 [tool.poetry.dependencies]
 python = "^3.11"
 aiohttp = "^3.8.4"
