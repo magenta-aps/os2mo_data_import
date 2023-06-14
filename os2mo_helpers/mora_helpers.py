@@ -665,15 +665,22 @@ class MoraHelper:
                 "Org-enhed UUID": person["org_unit"]["uuid"],
                 "Engagement UUID": person["uuid"],
             }
-            if "job_function" in person:
+            if "job_function" in person and person["job_function"] is not None:
                 data["Stillingsbetegnelse"] = person["job_function"]["name"]
+            else:
+                data["Stillingsbetegnelse"] = None
 
-            if "engagement_type" in person:
+            if "engagement_type" in person and person["engagement_type"] is not None:
                 data["engagement_type_uuid"] = person["engagement_type"]["uuid"]
                 data["Engagementstype"] = person["engagement_type"]["name"]
+            else:
+                data["engagement_type_uuid"] = None
+                data["Engagementstype"] = None
 
-            if "association_type" in person:
+            if "association_type" in person and person["association_type"] is not None:
                 data["Post"] = person["association_type"]["name"]
+            else:
+                data["Post"] = None
 
             # Finally, add name
             if split_name:
