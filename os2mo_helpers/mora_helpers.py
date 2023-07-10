@@ -656,6 +656,9 @@ class MoraHelper:
                 all_persons = all_persons + persons
 
         for person in all_persons:
+            if not person:
+                # Vacant association
+                continue
             uuid = person["person"]["uuid"]
             data = {
                 "Ansættelse gyldig fra": person["validity"]["from"],
