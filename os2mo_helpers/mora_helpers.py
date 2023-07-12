@@ -656,7 +656,7 @@ class MoraHelper:
                 all_persons = all_persons + persons
 
         for person in all_persons:
-            if not person:
+            if person["person"] is None:
                 # Vacant association
                 continue
             uuid = person["person"]["uuid"]
