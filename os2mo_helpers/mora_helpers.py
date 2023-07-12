@@ -628,60 +628,60 @@ class MoraHelper:
     def read_organisation_people(
         self,
         org_uuid,
-        person_type="engagement",
+        function_type="engagement",
         split_name=True,
         read_all=False,
         skip_past=False,
     ):
         """Read all employees in an ou. If the same employee is listed
         more than once, only the latest listing will be included.
-        :param org_uuid: UUID of the OU to find emplyees in.
+        :param org_uuid: UUID of the OU to find employees in.
         :read_all: Read all engagements, not only the present ones.
-        :return: The list of emplyoees
+        :return: The list of employees
         """
         person_list = {}
         if not read_all:
-            all_persons = self._mo_lookup(org_uuid, "ou/{}/details/" + person_type)
+            all_functions = self._mo_lookup(org_uuid, "ou/{}/details/" + function_type)
         else:
             if skip_past:
                 validity_times = ["present", "future"]
             else:
                 validity_times = ["past", "present", "future"]
 
-            all_persons = []
+            all_functions = []
             for validity in validity_times:
-                persons = self._mo_lookup(
-                    org_uuid, "ou/{}/details/" + person_type, validity=validity
+                functions = self._mo_lookup(
+                    org_uuid, "ou/{}/details/" + function_type, validity=validity
                 )
-                all_persons = all_persons + persons
+                all_functions = all_functions + functions
 
-        for person in all_persons:
-            if person["person"] is None:
+        for function in all_functions:
+            if function["person"] is None:
                 # Vacant association
                 continue
-            uuid = person["person"]["uuid"]
+            uuid = function["person"]["uuid"]
             data = {
-                "Ansættelse gyldig fra": person["validity"]["from"],
-                "Ansættelse gyldig til": person["validity"]["to"],
+                "Ansættelse gyldig fra": function["validity"]["from"],
+                "Ansættelse gyldig til": function["validity"]["to"],
                 "Person UUID": uuid,
-                "Org-enhed": person["org_unit"]["name"],
-                "Org-enhed UUID": person["org_unit"]["uuid"],
-                "Engagement UUID": person["uuid"],
+                "Org-enhed": function["org_unit"]["name"],
+                "Org-enhed UUID": function["org_unit"]["uuid"],
+                "Engagement UUID": function["uuid"],
             }
-            if "job_function" in person and person["job_function"] is not None:
-                data["Stillingsbetegnelse"] = person["job_function"]["name"]
+            if "job_function" in function and function["job_function"] is not None:
+                data["Stillingsbetegnelse"] = function["job_function"]["name"]
             else:
                 data["Stillingsbetegnelse"] = None
 
-            if "engagement_type" in person and person["engagement_type"] is not None:
-                data["engagement_type_uuid"] = person["engagement_type"]["uuid"]
-                data["Engagementstype"] = person["engagement_type"]["name"]
+            if "engagement_type" in function and function["engagement_type"] is not None:
+                data["engagement_type_uuid"] = function["engagement_type"]["uuid"]
+                data["Engagementstype"] = function["engagement_type"]["name"]
             else:
                 data["engagement_type_uuid"] = None
                 data["Engagementstype"] = None
 
-            if "association_type" in person and person["association_type"] is not None:
-                data["Post"] = person["association_type"]["name"]
+            if "association_type" in function and function["association_type"] is not None:
+                data["Post"] = function["association_type"]["name"]
             else:
                 data["Post"] = None
 
@@ -689,13 +689,13 @@ class MoraHelper:
             if split_name:
                 # If a split name i wanted, we prefer to get i directly from MO
                 # rather than an algorithmic split.
-                if person["person"].get("givenname"):
-                    data["Fornavn"] = person["person"].get("givenname")
-                    data["Efternavn"] = person["person"].get("surname")
+                if function["person"].get("givenname"):
+                    data["Fornavn"] = function["person"].get("givenname")
+                    data["Efternavn"] = function["person"].get("surname")
                 else:
                     data.update(self._split_name(person["person"]["name"]))
             else:
-                data["Navn"] = person["person"]["name"]
+                data["Navn"] = function["person"]["name"]
             person_list[uuid] = data
         return person_list
 
