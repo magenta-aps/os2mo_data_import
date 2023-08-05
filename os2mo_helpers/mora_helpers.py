@@ -693,7 +693,7 @@ class MoraHelper:
                     data["Fornavn"] = function["person"].get("givenname")
                     data["Efternavn"] = function["person"].get("surname")
                 else:
-                    data.update(self._split_name(person["person"]["name"]))
+                    data.update(self._split_name(function["person"]["name"]))
             else:
                 data["Navn"] = function["person"]["name"]
             person_list[uuid] = data
