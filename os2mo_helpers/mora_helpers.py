@@ -38,12 +38,11 @@ logger = logging.getLogger("mora-helper")
 
 class MoraHelper:
     def __init__(
-        self, hostname="http://localhost:5000", export_ansi=True, use_cache=True
+        self, hostname="http://localhost:5000", use_cache=True
     ):
         self.host = hostname + "/service/"
         self.cache = {}
         self.default_cache = use_cache
-        self.export_ansi = export_ansi
 
     def _split_name(self, name):
         """Split a name into first and last name.
@@ -89,7 +88,6 @@ class MoraHelper:
         in dict will be matched to fieldnames.
         :param filename: The name of the exported file.
         """
-        print("Encode ascii: {}".format(self.export_ansi))
         with open(filename, encoding="utf-8", mode="w") as csvfile:
             writer = csv.DictWriter(
                 csvfile,
@@ -102,11 +100,6 @@ class MoraHelper:
             for row in rows:
                 writer.writerow(row)
 
-        if self.export_ansi:
-            with codecs.open(filename, "r", encoding="utf-8") as csvfile:
-                lines = csvfile.read()
-            with codecs.open(filename, "w", encoding="cp1252") as csvfile:
-                csvfile.write(lines)
 
     def _create_path_dict(self, fieldnames, node, org_types=None):
         """Create a dict with a MO-path to a given node.
