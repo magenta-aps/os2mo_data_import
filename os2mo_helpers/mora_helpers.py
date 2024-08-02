@@ -38,9 +38,19 @@ logger = logging.getLogger("mora-helper")
 
 class MoraHelper:
     def __init__(
-        self, hostname="http://localhost:5000", use_cache=True
+        self,
+        hostname="http://localhost:5000",
+        use_cache=True,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        auth_server: str | None = None,
+        auth_realm: str | None = None,
     ):
         self.host = hostname + "/service/"
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.auth_server = auth_server
+        self.auth_realm = auth_realm
         self.cache = {}
         self.default_cache = use_cache
 
@@ -99,7 +109,6 @@ class MoraHelper:
             writer.writeheader()
             for row in rows:
                 writer.writerow(row)
-
 
     def _create_path_dict(self, fieldnames, node, org_types=None):
         """Create a dict with a MO-path to a given node.
@@ -160,7 +169,17 @@ class MoraHelper:
             logger.debug("cache hit: %s", cache_id)
             return_dict = self.cache[cache_id]
         else:
-            headers = TokenSettings().get_headers()
+            tokensettings = (
+                TokenSettings(
+                    client_id=self.client_id,
+                    client_secret=self.client_secret,
+                    auth_server=self.auth_server,
+                    auth_realm=self.auth_realm,
+                )
+                if self.client_secret
+                else TokenSettings()
+            )
+            headers = tokensettings.get_headers()
 
             response = requests.get(full_url, headers=headers, params=params)
             if response.status_code == 401:
@@ -666,14 +685,20 @@ class MoraHelper:
             else:
                 data["Stillingsbetegnelse"] = None
 
-            if "engagement_type" in function and function["engagement_type"] is not None:
+            if (
+                "engagement_type" in function
+                and function["engagement_type"] is not None
+            ):
                 data["engagement_type_uuid"] = function["engagement_type"]["uuid"]
                 data["Engagementstype"] = function["engagement_type"]["name"]
             else:
                 data["engagement_type_uuid"] = None
                 data["Engagementstype"] = None
 
-            if "association_type" in function and function["association_type"] is not None:
+            if (
+                "association_type" in function
+                and function["association_type"] is not None
+            ):
                 data["Post"] = function["association_type"]["name"]
             else:
                 data["Post"] = None
