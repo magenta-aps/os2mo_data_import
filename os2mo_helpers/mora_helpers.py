@@ -53,6 +53,17 @@ class MoraHelper:
         self.auth_realm = auth_realm
         self.cache = {}
         self.default_cache = use_cache
+    
+    def get_auth_headers(self):
+        if self.client_secret is None:
+            return TokenSettings().get_headers()
+        
+        return TokenSettings(
+                    client_id=self.client_id,
+                    client_secret=self.client_secret,
+                    auth_server=self.auth_server,
+                    auth_realm=self.auth_realm,
+                ).get_headers()
 
     def _split_name(self, name):
         """Split a name into first and last name.
@@ -169,17 +180,7 @@ class MoraHelper:
             logger.debug("cache hit: %s", cache_id)
             return_dict = self.cache[cache_id]
         else:
-            tokensettings = (
-                TokenSettings(
-                    client_id=self.client_id,
-                    client_secret=self.client_secret,
-                    auth_server=self.auth_server,
-                    auth_realm=self.auth_realm,
-                )
-                if self.client_secret
-                else TokenSettings()
-            )
-            headers = tokensettings.get_headers()
+            headers = self.get_auth_headers()
 
             response = requests.get(full_url, headers=headers, params=params)
             if response.status_code == 401:
@@ -204,7 +205,7 @@ class MoraHelper:
         if force:
             params["force"] = 1
 
-        headers = TokenSettings().get_headers()
+        headers = self.get_auth_headers()
 
         full_url = self.host + url
         response = requests.post(full_url, headers=headers, params=params, json=payload)
