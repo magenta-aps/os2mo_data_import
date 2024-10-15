@@ -28,7 +28,7 @@ more-itertools = "^9.1.0"
 jsonschema = "^4.17.3"
 pydantic = "^1.10.7"
 tenacity = "^8.2.2"
-ra-utils = "^1.13.0"
+fastramqpi = ">=5.7" # first version to include ra-utils
 
 [tool.poetry.group.pre-commit.dependencies]
 black = "^23.3.0"

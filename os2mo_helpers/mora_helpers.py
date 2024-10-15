@@ -25,7 +25,7 @@ import requests
 from anytree import Node
 from more_itertools import first
 from more_itertools import only
-from ra_utils.headers import TokenSettings
+from fastramqpi.ra_utils.headers import TokenSettings
 from tenacity import retry
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
