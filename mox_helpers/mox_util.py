@@ -10,11 +10,11 @@ from typing import Optional
 from typing import Tuple
 
 import click
+from fastramqpi.ra_utils.load_settings import load_settings
 from more_itertools import bucket
 from more_itertools import flatten
 from more_itertools import only
 from more_itertools import unzip
-from ra_utils.load_settings import load_settings
 
 from mox_helpers.mox_helper import create_mox_helper
 from mox_helpers.payloads import lora_facet

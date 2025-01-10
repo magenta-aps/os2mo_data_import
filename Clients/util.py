@@ -11,4 +11,3 @@ def uuid_to_str(data):
     elif isinstance(data, dict):
         return {key: uuid_to_str(value) for key, value in data.items()}
     raise TypeError(f"unexpected type: {type(data)}")
-
