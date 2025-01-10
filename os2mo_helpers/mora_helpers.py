@@ -10,7 +10,6 @@
 """
 Helper class to make a number of pre-defined queries into MO
 """
-import codecs
 import csv
 import datetime
 import logging
@@ -23,9 +22,9 @@ from uuid import UUID
 
 import requests
 from anytree import Node
+from fastramqpi.ra_utils.headers import TokenSettings
 from more_itertools import first
 from more_itertools import only
-from fastramqpi.ra_utils.headers import TokenSettings
 from tenacity import retry
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
@@ -53,17 +52,17 @@ class MoraHelper:
         self.auth_realm = auth_realm
         self.cache = {}
         self.default_cache = use_cache
-    
+
     def get_auth_headers(self):
         if self.client_secret is None:
             return TokenSettings().get_headers()
-        
+
         return TokenSettings(
-                    client_id=self.client_id,
-                    client_secret=self.client_secret,
-                    auth_server=self.auth_server,
-                    auth_realm=self.auth_realm,
-                ).get_headers()
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            auth_server=self.auth_server,
+            auth_realm=self.auth_realm,
+        ).get_headers()
 
     def _split_name(self, name):
         """Split a name into first and last name.
